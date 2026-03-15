@@ -25,9 +25,14 @@ jobs:
       - name: Build React app
         run: npm run build
 
-      - name: Deploy to Hostinger via rsync over SSH
-        env:
-          SSHPASS: ${{ secrets.FTP_PASSWORD }}
-        run: |
-          sudo apt-get install -y sshpass rsync
-          sshpass -e rsync -avz --delete -e "ssh -p ${{ secrets.FTP_PORT }} -o StrictHostKeyChecking=no" build/ ${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_HOST }}:/domains/starthobby.hewsay.com/public_html/
+      - name: Deploy to Hostinger via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.FTP_HOST }}
+          port: ${{ secrets.FTP_PORT }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          source: "build/"
+          target: /domains/starthobby.hewsay.com/public_html/
+          strip_components: 1
+          rm: false
