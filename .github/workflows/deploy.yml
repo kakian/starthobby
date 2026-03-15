@@ -25,14 +25,13 @@ jobs:
       - name: Build React app
         run: npm run build
 
-      - name: Deploy to Hostinger via SCP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.FTP_HOST }}
-          port: ${{ secrets.FTP_PORT }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          source: "build/"
-          target: /domains/starthobby.hewsay.com/public_html/
-          strip_components: 1
-          rm: false
+      - name: Deploy via lftp SFTP
+        run: |
+          sudo apt-get install -y lftp
+          lftp -c "
+            set sftp:auto-confirm yes;
+            set net:max-retries 3;
+            open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} sftp://${{ secrets.FTP_HOST }}:${{ secrets.FTP_PORT }};
+            mirror --reverse --delete --verbose build/ /domains/starthobby.hewsay.com/public_html/;
+            bye
+          "
